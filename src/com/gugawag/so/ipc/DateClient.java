@@ -1,34 +1,41 @@
 package com.gugawag.so.ipc;
 
-/**
- * Client program requesting current date from server.
- *
- * Figure 3.22
- *
- * @author Silberschatz, Gagne and Galvin. Pequenas alterações feitas por Gustavo Wagner (gugawag@gmail.com)
- * Operating System Concepts  - Eighth Edition
- */ 
-
-import java.net.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 
 public class DateClient {
-	public static void main(String[] args)  {
-		try {
-			// this could be changed to an IP name or address other than the localhost
-			Socket sock = new Socket("10.0.72.67",6013);
-			InputStream in = sock.getInputStream();
-			BufferedReader bin = new BufferedReader(new InputStreamReader(in));
+    public static void main(String[] args) {
+        try {
+            Socket socket = new Socket("localhost", 6013);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 
-			System.out.println("=== Cliente iniciado ===\n");
+            System.out.println("=== Cliente conectado ao servidor ===\n");
 
-			String line = bin.readLine();
-			System.out.println("O servidor me disse:" + line);
-				
-			sock.close();
-		}
-		catch (IOException ioe) {
-				System.err.println(ioe);
-		}
-	}
+            String serverResponse;
+            while ((serverResponse = in.readLine()) != null) {
+                System.out.println("Servidor: " + serverResponse);
+                if (serverResponse.equalsIgnoreCase("Encerrando conexão...")) {
+                    break;
+                }
+
+                System.out.print("Comando: ");
+                String userInput = console.readLine();
+                out.println(userInput);
+
+                if (userInput.trim().equalsIgnoreCase("quit")) {
+                    break;
+                }
+            }
+
+            socket.close();
+            System.out.println("Cliente desconectado.");
+        } catch (IOException e) {
+            System.err.println("Erro no cliente: " + e);
+        }
+    }
 }
